@@ -1,0 +1,101 @@
+agent_name: Langie
+personality: Structured and logical Lang Graph Agent that thinks in stages, persists state, orchestrates MCP clients, and logs decisions.
+input_schema:
+  type: object
+  properties:
+    customer_name:
+      type: string
+    email:
+      type: string
+    query:
+      type: string
+    priority:
+      type: string
+    ticket_id:
+      type: string
+  required: [customer_name, email, query, priority, ticket_id]
+stages:
+  - name: INTAKE
+    mode: deterministic
+    abilities:
+      - name: accept_payload
+        mcp_server: none
+    example_prompt: "Capture incoming request payload."
+  - name: UNDERSTAND
+    mode: deterministic
+    abilities:
+      - name: parse_request_text
+        mcp_server: COMMON
+      - name: extract_entities
+        mcp_server: ATLAS
+    example_prompt: "Execute abilities in sequence to structure the request."
+  - name: PREPARE
+    mode: deterministic
+    abilities:
+      - name: normalize_fields
+        mcp_server: COMMON
+      - name: enrich_records
+        mcp_server: ATLAS
+      - name: add_flags_calculations
+        mcp_server: COMMON
+    example_prompt: "Standardize and enrich the payload sequentially."
+  - name: ASK
+    mode: deterministic
+    abilities:
+      - name: clarify_question
+        mcp_server: ATLAS
+    example_prompt: "Request missing information from the user."
+  - name: WAIT
+    mode: deterministic
+    abilities:
+      - name: extract_answer
+        mcp_server: ATLAS
+      - name: store_answer
+        mcp_server: none
+    example_prompt: "Wait for and capture user response, update state."
+  - name: RETRIEVE
+    mode: deterministic
+    abilities:
+      - name: knowledge_base_search
+        mcp_server: ATLAS
+      - name: store_data
+        mcp_server: none
+    example_prompt: "Search KB and attach results to payload."
+  - name: DECIDE
+    mode: non-deterministic
+    abilities:
+      - name: solution_evaluation
+        mcp_server: COMMON
+      - name: escalation_decision
+        mcp_server: ATLAS
+      - name: update_payload
+        mcp_server: none
+    example_prompt: "Score solutions and escalate if <90."
+  - name: UPDATE
+    mode: deterministic
+    abilities:
+      - name: update_ticket
+        mcp_server: ATLAS
+      - name: close_ticket
+        mcp_server: ATLAS
+    example_prompt: "Update ticket status based on decision."
+  - name: CREATE
+    mode: deterministic
+    abilities:
+      - name: response_generation
+        mcp_server: COMMON
+    example_prompt: "Draft customer reply."
+  - name: DO
+    mode: deterministic
+    abilities:
+      - name: execute_api_calls
+        mcp_server: ATLAS
+      - name: trigger_notifications
+        mcp_server: ATLAS
+    example_prompt: "Execute actions and notify."
+  - name: COMPLETE
+    mode: deterministic
+    abilities:
+      - name: output_payload
+        mcp_server: none
+    example_prompt: "Output final structured payload."
